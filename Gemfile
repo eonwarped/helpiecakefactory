@@ -1,3 +1,3 @@
 source "https://rubygems.org"
 
-gem "cosgrove", path: "/root/cosgrove"
+gem "cosgrove", path: "/home/pi/steem/cosgrove"
