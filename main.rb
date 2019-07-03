@@ -1,4 +1,5 @@
 require 'cosgrove'
+require 'radiator'
 require 'discordrb/webhooks'
 
 include Cosgrove::Utils
@@ -84,8 +85,12 @@ def select_cupcake()
   return "![helpiecake](#{$cakes.sample})"
 end
 
-bot = Cosgrove::Bot.new :prefix => '..', :on_success_upvote_job => -> event, slug, custom_message {
+bot = Cosgrove::Bot.new :prefix => '..', :on_success_upvote_job => -> event, slug, custom_message, language {
   author_name, permlink = parse_slug slug
+  discord_id = event.author.id
+  cb_account = Cosgrove::Account.find_by_discord_id(discord_id)
+  account_name = nil
+  account_name = cb_account.chain_account.name if !!cb_account && !!cb_account.chain_account
 
   resteem_data = [
     :reblog, {
@@ -94,35 +99,43 @@ bot = Cosgrove::Bot.new :prefix => '..', :on_success_upvote_job => -> event, slu
       permlink: permlink
     }
   ]
-  resteem = {
+  resteem = Radiator::Operation.new({
     type: :custom_json,
     required_auths: [],
     required_posting_auths: ["helpiecake"],
     id: "follow",
     json: resteem_data.to_json,
-  }
+  })
   tx = new_tx :steem
   tx.operations << resteem 
   begin
     response = tx.process(true)
+    if response.error
+      puts "Error resteeming: #{response.error}"
+    end
   rescue => e
     puts "Unable to resteem: #{e}"
-    ap e
+    ap e.backtrace
+  end
+
+  if !!account_name
+    custom_message += case language
+		      when 'english'
+			      "\nManually curated by @#{account_name}."
+		      when 'spanish'
+			      "\nManualmente curado por @#{account_name}."
+		      else
+			      ""
+		      end
   end
 
   comment_tags = %w(helpiecake)
   comment_metadata = {
     tags: comment_tags
   }
-  comment = {
-    type: :comment,
-    parent_author: author_name,
-    parent_permlink: permlink,
-    author: 'helpiecake',
-    permlink: 're-helpiecake-comment-' + Time.new.to_i.to_s + 'z',
-    title: '',
-    json_metadata: comment_metadata.to_json,
-    body: <<-BODY
+  comment_permlink = 're-helpiecake-comment-' + Time.new.to_i.to_s + 'z'
+
+  body = <<-BODY
 Hello! 
 
 This post has been manually curated, resteemed
@@ -139,14 +152,76 @@ Keep up the great work!
 
 #{custom_message}
 BODY
-  } 
+
+  if language == 'spanish'
+	  body = <<-BODYESP
+Hola!
+
+Este post ha sido manualmente curado, reestemeado 
+y alimentado con una deliciosa torta virtual del 
+equipo de curacion @helpiecake!
+
+Mucho amor para ti de parte de toda la comunidad @helpie!
+Manten en alto tu buen trabajo!
+
+<a href="http://steemit.com/@helpie">
+#{select_cupcake()}
+</a>
+
+#{custom_message}
+BODYESP
+  end
+
+  comment = Radiator::Operation.new({
+    type: :comment,
+    parent_author: author_name,
+    parent_permlink: permlink,
+    author: 'helpiecake',
+    permlink: comment_permlink,
+    title: '',
+    json_metadata: comment_metadata.to_json,
+    body: body,
+  })
+
   tx = new_tx :steem
   tx.operations << comment 
+  
   begin
     response = tx.process(true)
+    if response.error
+      puts "Error commenting: #{response.error}"
+    end
   rescue => e
     puts "Unable to comment: #{e}"
-    ap e
+    ap e.backtrace
+  end
+
+  # try comment options in separate tx?
+  if !!account_name
+    tx = new_tx :steem
+    comment_options = Radiator::Operation.new(
+      type: :comment_options,
+      author: 'helpiecake',
+      permlink: comment_permlink,
+      max_accepted_payout: '1000000.000 SBD',
+      percent_steem_dollars: 10000,
+      allow_votes: true,
+      allow_curation_rewards: true,
+      extensions: 
+      #[[0, { 'beneficiaries' => [{ 'account' => account_name, 'weight' => 5000 }] }]]
+      Radiator::Type::Beneficiaries.new(account_name => 5000)
+    )
+    tx.operations << comment_options
+
+    begin
+      response = tx.process(true)
+      if response.error
+        puts "Error with comment options: #{response.error}"
+      end
+    rescue => e
+      puts "Unable to comment option: #{e}"
+      ap e.backtrace
+    end
   end
 }
 
@@ -157,8 +232,8 @@ bot.command :cake do |event|
   event.send_message('', false, embed)
 end
 
-bot.command :curated do |event, n, skip|
-  "```\n#{event.respond File.readlines('curated.csv').reverse()[skip..(skip + n.to_i)].join("")}\n```"
+bot.command :curated do |event|
+  event.channel.send_file(File.open('curated.csv', 'r'))
 end
 
 bot.run
