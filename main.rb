@@ -151,6 +151,13 @@ Keep up the great work!
 </a>
 
 #{custom_message}
+
+
+<sub>
+@helpie is a [Community Witness](http://steemit.com/~witnesses). 
+For more information about our project, 
+please visit this month’s [UPDATE](https://steemit.com/update/@helpie/helpie-update-june-2019) post.
+</sub>
 BODY
 
   if language == 'spanish'
@@ -169,6 +176,13 @@ Manten en alto tu buen trabajo!
 </a>
 
 #{custom_message}
+
+
+<sub>
+¿Sabías que @helpie es un Witness (testigo) de la comunidad? 
+para más información de nuestro proyecto, 
+por favor visita [el post de Actualizaciones de este mes](https://steemit.com/update/@helpie/helpie-update-june-2019).
+</sub>
 BODYESP
   end
 
