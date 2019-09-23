@@ -5,6 +5,7 @@ require 'discordrb/webhooks'
 include Cosgrove::Utils
 
 $cakes = <<-CAKES.split("\n")
+https://cdn.steemitimages.com/DQmTFRGpRwCMpSLDCqNAtn68d4r6DSFmoPYeQLJmLKwQR3V/cakeheart.gif
 https://cdn.steemitimages.com/DQmQPiNojsUcVHSfFWx9xVEhhjXoCQN4G8kjiLkAy9friqM/5be84e6b38c6c0bdc4bb3057185f10a2.png
 https://cdn.steemitimages.com/DQmaJNEHDLvSiVh7PULZQoRsragWmpT2LroZjC6bTLWxU1f/7d5953f1d20f935a82091455399701fb.png
 https://cdn.steemitimages.com/DQmTpdoHZHEFyZPjQdfmh6NYAZWoVK6rDJqmuFMF3WVN1VY/23.png
