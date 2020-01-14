@@ -155,9 +155,7 @@ Keep up the great work!
 
 
 <sub>
-@helpie is a [Community Witness](http://steemit.com/~witnesses). 
-For more information about our project, 
-please visit this month’s [UPDATE](https://steemit.com/update/@helpie/helpie-update-june-2019) post.
+@helpie is a [Community Witness](https://steemitwallet.com/~witnesses). 
 </sub>
 BODY
 
@@ -180,9 +178,7 @@ Manten en alto tu buen trabajo!
 
 
 <sub>
-¿Sabías que @helpie es un Witness (testigo) de la comunidad? 
-para más información de nuestro proyecto, 
-por favor visita [el post de Actualizaciones de este mes](https://steemit.com/update/@helpie/helpie-update-june-2019).
+@helpie es un [Witness (testigo)](https://steemitwallet.com/~witnesses) de la comunidad.
 </sub>
 BODYESP
   end
