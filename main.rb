@@ -247,4 +247,56 @@ bot.command :curated do |event|
   event.channel.send_file(File.open('curated.csv', 'r'))
 end
 
+api = Radiator::Api.new({url: 'https://api.steemit.com', failover_urls: []})
+
+last_seen = -1
+bot.heartbeat do |event|
+  puts last_seen
+  api.get_account_history("helpiecake", last_seen < 0 ? -1 : (last_seen + 100), 100) do |history|
+    history.each do |index, item|
+      type, op = item.op
+      
+      next unless index > last_seen
+      last_seen = index
+
+      next unless type == 'comment'
+      next if op.parent_author.empty? # skip posts
+      next unless op.parent_author == "helpiecake" # skip comments by account
+      
+
+      url = "https://steemit.com/@#{op.author}/#{op.permlink}"
+      api.get_content(op.author, op.permlink) do |reply|
+        puts index
+        puts "Reply by @#{op.author} in discussion: \"#{reply.root_title}\""
+        
+        #puts "\tbody_length: #{reply.body.size} (#{reply.body.split(/\W+/).size} words)"
+        
+        # The date and time this reply was created.
+        #print "\treplied at: #{reply.created}"
+        
+        if reply.last_update != reply.created
+          # The date and time of the last update to this reply.
+          #print ", updated at: #{reply.last_update}"
+        end
+        
+        if reply.last_update != reply.created
+          # The last time this reply was "touched" by voting or reply.
+          #print ", active at: #{reply.active}"
+        end
+        
+        #print "\n"
+        
+        # Net positive votes
+        #puts "\tnet_votes: #{reply.net_votes}"
+        
+        # Link directly to reply.
+        #puts "\t#{url}"
+        #event.bot.send_temporary_message(534928488675803136,"Reply by @#{op.author} in discussion: \"#{reply.root_title}\"", 60)
+        #event.bot.send_temporary_message(534928488675803136, reply.body, 60)
+        event.bot.send_message(673888759502209073, "Reply by @#{op.author} in discussion `#{reply.root_title}` #{url}")
+      end
+    end
+  end
+end
+
 bot.run
